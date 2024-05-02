@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-fei-bagong",
   "description": "提供上班下班指令，让bot放假",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
@@ -9,14 +9,20 @@
     "dist"
   ],
   "license": "MIT",
-  "scripts": {},
   "keywords": [
     "chatbot",
     "koishi",
     "plugin"
   ],
-  "devDependencies": {},
   "peerDependencies": {
     "koishi": "^4.17.5"
+  },
+  "koishi": {
+    "description": {
+      "zh": "提供上班下班指令，让bot放假"
+    },
+    "locales": [
+      "zh"
+    ]
   }
 }
