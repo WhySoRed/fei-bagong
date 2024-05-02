@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-fei-bagong",
   "description": "提供上班下班指令，让bot放假",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
@@ -20,6 +20,11 @@
   "koishi": {
     "description": {
       "zh": "提供上班下班指令，让bot放假"
+    },
+    "services": {
+      "required": [
+        "database"
+      ]
     },
     "locales": [
       "zh"

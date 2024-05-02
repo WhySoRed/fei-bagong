@@ -1,4 +1,3 @@
-import { setEngine } from 'crypto'
 import { Context, Schema, h } from 'koishi'
 export const inject = ['database']
 
@@ -13,6 +12,7 @@ export interface Config {
     unworkText: string
     bagongText: string
     superBagongMode: boolean
+    bagongPrefix: string
 }
 
 export const Config: Schema<Config> = Schema.object({
@@ -23,8 +23,14 @@ export const Config: Schema<Config> = Schema.object({
     workText: Schema.string().default('上班咯').description('上班文本'),
     unworkText: Schema.string().default('下班咯').description('下班文本'),
     bagongText: Schema.string().default('').description('罢工文本，为空时什么也不说'),
-    superBagongMode: Schema.boolean().default(false).description('强力罢工~未开启时只屏蔽指令但不影响统计插件，开启后无视上下班指令外全部内容，但注意是否需要修改上下班指令前缀')
+    superBagongMode: Schema.boolean().default(false).description('强力罢工~未开启时只屏蔽指令但不影响统计插件，开启后无视上下班指令外全部内容'),
+    bagongPrefix: Schema.string().default('').description('指令前缀，如果你修改过全局设置的指令前缀，请在这里再设置一次...')
 })
+
+export const usage =`
+让你的机器人可以上班与下班~
+
+0.3.0 新增了可以指定某个群上下班的功能 注意本功能对QQ官方机器人可能效果不佳（毕竟官方机器人又读不了群号又读不了群名惨兮兮，叹）`;
 
 declare module 'koishi' {
   interface Tables {
@@ -103,7 +109,7 @@ export function apply(ctx: Context, config: Config) {
 
     if(config.superBagongMode) {
         ctx.middleware(async(session, next) => {
-        const content = h.select(session.content,'text')[0]?.attrs.content.replace(/^\//,'');
+        const content = h.select(session.content,'text')[0]?.attrs.content.replace(/^\//,'').replace(RegExp('^' + config.bagongPrefix),'');
         const xiabanla = (await ctx.database.get('bagongData', { platform: session.platform, channelId:session.event.channel.id }))[0]?.xiabanla;
         if(!xiabanla || content.startsWith(config.workCommand) || content.startsWith(config.unworkCommand))
             return next();
