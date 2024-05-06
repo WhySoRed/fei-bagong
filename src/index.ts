@@ -12,7 +12,6 @@ export interface Config {
     unworkText: string
     bagongText: string
     superBagongMode: boolean
-    bagongPrefix: string
 }
 
 export const Config: Schema<Config> = Schema.object({
@@ -24,7 +23,6 @@ export const Config: Schema<Config> = Schema.object({
     unworkText: Schema.string().default('下班咯').description('下班文本'),
     bagongText: Schema.string().default('').description('罢工文本，为空时什么也不说'),
     superBagongMode: Schema.boolean().default(false).description('强力罢工~未开启时只屏蔽指令但不影响统计插件，开启后无视上下班指令外全部内容'),
-    bagongPrefix: Schema.string().default('').description('指令前缀，如果你修改过全局设置的指令前缀，请在这里再设置一次...')
 })
 
 export const usage =`
@@ -109,7 +107,7 @@ export function apply(ctx: Context, config: Config) {
 
     if(config.superBagongMode) {
         ctx.middleware(async(session, next) => {
-        const content = h.select(session.content,'text')[0]?.attrs.content.replace(/^\//,'').replace(RegExp('^' + config.bagongPrefix),'');
+        const content = h.select(session.content,'text')[0]?.attrs.content.replace(/^\//,'').replace(RegExp('^' + ctx.root.config.prefix),'');
         const xiabanla = (await ctx.database.get('bagongData', { platform: session.platform, channelId:session.event.channel.id }))[0]?.xiabanla;
         if(!xiabanla || content.startsWith(config.workCommand) || content.startsWith(config.unworkCommand))
             return next();
