@@ -8,6 +8,7 @@ export interface Config {
     unworkCommand: string
     goWorkCommand: string
     goUnworkCommand: string
+    noticeWhenGo: boolean
     workText: string
     unworkText: string
     bagongText: string
@@ -19,6 +20,7 @@ export const Config: Schema<Config> = Schema.object({
     unworkCommand: Schema.string().default('下班').description('下班指令名'),
     goWorkCommand: Schema.string().default('去上班').description('指定某个/某些群上班的指令名'),
     goUnworkCommand: Schema.string().default('去下班').description('指定某个/某些群下班的指令名'),
+    noticeWhenGo: Schema.boolean().default(true).description('是否在上下班时通知群内'),
     workText: Schema.string().default('上班咯').description('上班文本'),
     unworkText: Schema.string().default('下班咯').description('下班文本'),
     bagongText: Schema.string().default('').description('罢工文本，为空时什么也不说'),
@@ -28,7 +30,8 @@ export const Config: Schema<Config> = Schema.object({
 export const usage =`
 让你的机器人可以上班与下班~
 
-0.3.0 新增了可以指定某个群上下班的功能 注意本功能对QQ官方机器人可能效果不佳（毕竟官方机器人又读不了群号又读不了群名惨兮兮，叹）`;
+0.3.0 新增了可以指定某个群上下班的功能 注意本功能对QQ官方机器人可能效果不佳（毕竟官方机器人又读不了群号又读不了群名惨兮兮，叹）
+0.4.0 新增了上下班通知的开关功能，关闭后去上班指令和去下班指令不会不会通知对应群，也可以私聊上班/下班开关本功能`;
 
 declare module 'koishi' {
   interface Tables {
@@ -50,14 +53,25 @@ export function apply(ctx: Context, config: Config) {
     },{
         primary: ['platform','channelId']
     })
+    let noticeWhenGo = config.noticeWhenGo;
     //上班
     ctx.command(config.workCommand).action(async ({ args, session }) => {
-        await ctx.database.upsert('bagongData', [{ platform: session.platform, channelId: session.event.channel.id, xiabanla: false }]);
+        if(session.event.channel.type) {
+            noticeWhenGo = true;
+            return '已开启上下班通知';
+        }
+        else
+            await ctx.database.upsert('bagongData', [{ platform: session.platform, channelId: session.event.channel.id, xiabanla: false }]);
         return config.workText;
     })
     //下班
     ctx.command(config.unworkCommand).action(async ({ args, session }) => {
-        await ctx.database.upsert('bagongData', [{ platform: session.platform, channelId: session.event.channel.id, xiabanla: true }]);
+        if(session.event.channel.type) {
+            noticeWhenGo = false;
+            return '已关闭上下班通知';
+        }
+        else
+            await ctx.database.upsert('bagongData', [{ platform: session.platform, channelId: session.event.channel.id, xiabanla: true }]);
         return config.unworkText;
     })
     //指定某个/某些群上班
@@ -73,7 +87,8 @@ export function apply(ctx: Context, config: Config) {
                 //~可以把index未找到的-1变为0
                 if(~guildIndex) {
                     returnMessage += '\n在"' + guildList[guildIndex].name + '"' + config.workText;
-                    session.bot.sendMessage(guildId, config.workText)
+                    if(noticeWhenGo)
+                        session.bot.sendMessage(guildId, config.workText);
                     await ctx.database.upsert('bagongData', [{ platform: session.platform, channelId: guildId, xiabanla: false }]);
                 }
                 else 
@@ -95,7 +110,8 @@ export function apply(ctx: Context, config: Config) {
                 //~可以把index未找到的-1变为0
                 if(~guildIndex) {
                     returnMessage += '\n在"' + guildList[guildIndex].name + '"' + config.unworkText;
-                    session.bot.sendMessage(guildId, config.unworkText)
+                    if(noticeWhenGo)
+                        session.bot.sendMessage(guildId, config.unworkText);
                     await ctx.database.upsert('bagongData', [{ platform: session.platform, channelId: guildId, xiabanla: true }]);
                 }
                 else 

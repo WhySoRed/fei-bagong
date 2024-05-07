@@ -2,7 +2,7 @@
   "name": "koishi-plugin-fei-bagong",
   "description": "提供上班下班指令，让bot放假",
   "homepage": "https://github.com/WhySoRed/koishi-plugin-fei-bagong",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
