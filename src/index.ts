@@ -125,7 +125,7 @@ export function apply(ctx: Context, config: Config) {
         ctx.middleware(async(session, next) => {
         const content = h.select(session.content,'text')[0]?.attrs.content.replace(/^\//,'').replace(RegExp('^' + ctx.root.config.prefix),'');
         const xiabanla = (await ctx.database.get('bagongData', { platform: session.platform, channelId:session.event.channel.id }))[0]?.xiabanla;
-        if(!xiabanla || content.startsWith(config.workCommand) || content.startsWith(config.unworkCommand))
+        if(!xiabanla || content?.startsWith(config.workCommand) || content?.startsWith(config.unworkCommand))
             return next();
         else 
             session.send(config.bagongText);
